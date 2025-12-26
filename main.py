@@ -1,6 +1,8 @@
 import yfinance as yf
 import pandas as pd
+import numpy as np
 
+#when used for the first time, uncomment the code below
 """tickers = ['AAPL', 'MSFT', 'SPY']
 
 df = yf.download(tickers, start='2020-01-01', end='2025-12-23')
@@ -22,4 +24,16 @@ df.to_csv('data.csv')"""
 
 df = pd.read_csv('data.csv')
 
-print(df.head())
+#lets start by creating some metrics which we will use for the MC method, mean, covariance and returns. first, lets log the returns so we can use them in the method, this makes it easier
+df['Apple DR'] = np.log(df['AAPL']).diff().dropna()
+df['Microsoft DR'] = np.log(df['MSFT']).diff().dropna()
+df['S&P500 DR'] = np.log(df['SPY']).diff().dropna()
+
+#mean and covariance
+assets = ['Apple DR', 'Microsoft DR', 'S&P500 DR']
+
+mu  = df[assets].mean()
+cov = df[assets].cov()
+
+print(mu)
+print(cov)
