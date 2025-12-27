@@ -25,7 +25,7 @@ df.to_csv('data.csv')"""
 
 df = pd.read_csv('data.csv')
 
-#lets start by creating some metrics which we will use for the MC method, mean, covariance and returns. first, lets log the returns so we can use them in the method, this makes it easier
+#let's start by creating some metrics which we will use for the MC method, mean, covariance and returns. first, lets log the returns so we can use them in the method, this makes it easier
 df['Apple DR'] = np.log(df['AAPL']).diff().dropna()
 df['Microsoft DR'] = np.log(df['MSFT']).diff().dropna()
 df['S&P500 DR'] = np.log(df['SPY']).diff().dropna()
@@ -35,17 +35,30 @@ assets = ['Apple DR', 'Microsoft DR', 'S&P500 DR']
 mu  = df[assets].mean()
 cov = df[assets].cov()
 
-#we add the weights of the assets out of our portfolio and the initial capital we are planning to start with. say our portfolio is 10k, out of that 4k is in apple, 3k in microsoft and the rest in in s&p
-weighs = np.array([0.4, 0.3, 0.3])
+#we add the weights of the assets out of our portfolio and the initial capital we are planning to start with. say our portfolio is 10k, out of that 4k is in apple, 3k in microsoft and the rest in s&p
+weights = np.array([0.4, 0.3, 0.3])
 initial_capital = 10_000
 portfolio_value = initial_capital * (1 + df[assets]).cumprod()
 
 #number of paths and the mc simulation
 n_simulations = 10_000
+paths = []
+for i in range(n_simulations):
+    sim_asset_returns = np.random.multivariate_normal(mu, cov, 252)
+    portfolio_returns = sim_asset_returns @ weights
+    wealth_curve = initial_capital * (1 + portfolio_returns).cumprod()
+    paths.append(wealth_curve)
 
-sim_asset_returns = np.random.multivariate_normal(mu, cov, n_simulations)
+paths = np.array(paths)
+print(paths)
+ending_values = paths[:, -1]
+plt.hist(ending_values, bins=50)
+plt.show()
 
-wealth_curve = initial_capital * (1 + sim_asset_returns).cumprod()
+for i in range(n_simulations):
+    plt.plot(paths[i], color='steelblue', alpha=0.05)  # very transparent
 
-plt.plot(wealth_curve, label='Wealth')
+plt.xlabel('Day')
+plt.ylabel('Wealth')
+plt.title('Monte Carlo Portfolio Paths')
 plt.show()
